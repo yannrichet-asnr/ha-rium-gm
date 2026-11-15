@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier la cohérence tag / manifeste
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest=$(python3 -c "import json;print(json.load(open('custom_components/rium_gm/manifest.json'))['version'])")
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::tag v$tag != version du manifeste $manifest"; exit 1
+          fi
+
+      - name: Notes de version (section du CHANGELOG)
+        run: |
+          awk -v v="## ${GITHUB_REF_NAME#v}" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
+          test -s notes.md || { echo "::error::section ${GITHUB_REF_NAME#v} absente du CHANGELOG"; exit 1; }
+
+      - name: Archive de l'intégration
+        run: cd custom_components/rium_gm && zip -r "$GITHUB_WORKSPACE/rium_gm.zip" . -x '__pycache__/*'
+
+      - name: Créer la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" rium_gm.zip --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag
