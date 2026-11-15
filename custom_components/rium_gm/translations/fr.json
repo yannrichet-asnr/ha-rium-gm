@@ -1,0 +1,32 @@
+{
+  "config": {
+    "flow_title": "Rium GM ({port})",
+    "step": {
+      "user": { "title": "Port série du Rium GM", "data": { "port": "Port" } },
+      "manual": { "data": { "port": "Chemin du port (ex. /dev/serial/by-id/...)" } },
+      "confirm": { "description": "Ajouter le Rium GM détecté sur {port} ?" }
+    },
+    "error": { "port_not_found": "Port introuvable." },
+    "abort": { "already_configured": "Ce port est déjà configuré." }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "window": "Fenêtre de calcul du taux (s)",
+          "scan_interval": "Période de mise à jour des états (s)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "dose_rate": { "name": "Débit de dose" },
+      "count_rate": { "name": "Taux de comptage" },
+      "total_hits": { "name": "Coups cumulés" },
+      "temperature": { "name": "Température" },
+      "battery": { "name": "Batterie" }
+    },
+    "binary_sensor": { "connected": { "name": "Connecté" } }
+  }
+}

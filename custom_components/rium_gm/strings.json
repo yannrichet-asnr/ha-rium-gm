@@ -1,0 +1,61 @@
+{
+  "config": {
+    "flow_title": "Rium GM ({port})",
+    "step": {
+      "user": {
+        "title": "Rium GM serial port",
+        "data": {
+          "port": "Port"
+        }
+      },
+      "manual": {
+        "data": {
+          "port": "Port path (e.g. /dev/serial/by-id/...)"
+        }
+      },
+      "confirm": {
+        "description": "Add the Rium GM found on {port}?"
+      }
+    },
+    "error": {
+      "port_not_found": "Port not found."
+    },
+    "abort": {
+      "already_configured": "This port is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "window": "Rate averaging window (s)",
+          "scan_interval": "State update period (s)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "dose_rate": {
+        "name": "Dose rate"
+      },
+      "count_rate": {
+        "name": "Count rate"
+      },
+      "total_hits": {
+        "name": "Total counts"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "battery": {
+        "name": "Battery"
+      }
+    },
+    "binary_sensor": {
+      "connected": {
+        "name": "Connected"
+      }
+    }
+  }
+}
