@@ -39,7 +39,7 @@ SENSORS = (
     RiumSensorDescription(
         key="temperature", device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        state_class=SensorStateClass.MEASUREMENT, entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=1,
         value=lambda s: s.temperature,
     ),
     RiumSensorDescription(
@@ -51,7 +51,34 @@ SENSORS = (
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, add: AddEntitiesCallback) -> None:
-    add(RiumSensor(entry.runtime_data, entry, d) for d in SENSORS)
+    coordinator = entry.runtime_data
+    entities: list[SensorEntity] = [RiumSensor(coordinator, entry, d) for d in SENSORS]
+    if coordinator.publisher is not None:
+        entities.append(OpenRadiationLastSubmission(coordinator, entry, "openradiation_last_submission"))
+    add(entities)
+
+
+class OpenRadiationLastSubmission(RiumEntity, SensorEntity):
+    """Horodatage du dernier envoi réussi vers OpenRadiation."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:cloud-upload"
+
+    @property
+    def native_value(self):
+        return self.coordinator.publisher.status.last_success
+
+    @property
+    def extra_state_attributes(self):
+        st = self.coordinator.publisher.status
+        return {
+            "report_uuid": st.last_report_uuid,
+            "value_usv_h": st.last_value,
+            "pending": st.pending,
+            "last_error": st.last_error,
+            "report_context": "routine" if self.coordinator.publisher.cfg.get("production") else "test",
+        }
 
 
 class RiumSensor(RiumEntity, SensorEntity):

@@ -92,7 +92,7 @@ async def test_reader_over_pty():
     master, slave = pty.openpty()
     agg = RiumAggregator(window=60)
     got = asyncio.Event()
-    reader = RiumSerialReader(os.ttyname(slave), agg, lambda: agg.state.total_hits >= 7 and got.set())
+    reader = RiumSerialReader(os.ttyname(slave), agg, lambda _f: agg.state.total_hits >= 7 and got.set())
     reader.start()
     await asyncio.sleep(0.3)
     for h in (1, 2, 4):

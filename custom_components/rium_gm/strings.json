@@ -30,8 +30,33 @@
         "data": {
           "window": "Rate averaging window (s)",
           "scan_interval": "State update period (s)"
+        },
+        "sections": {
+          "openradiation": {
+            "name": "OpenRadiation publishing",
+            "description": "Send aggregated measurements to openradiation.org. The coordinates below are published on a public map: round them if needed. Test mode (production off) sends data the API does not store. API key: request from dev@openradiation.net.",
+            "data": {
+              "enabled": "Enable publishing",
+              "api_key": "API key",
+              "production": "Production mode (reportContext=routine, data stored and public)",
+              "latitude": "Latitude",
+              "longitude": "Longitude",
+              "environment": "Measurement environment",
+              "height": "Height above ground (m)",
+              "period": "Publishing period (s, min 600)",
+              "user_id": "openradiation.org user id (optional)",
+              "user_pwd": "openradiation.org password"
+            }
+          }
         }
       }
+    },
+    "error": {
+      "api_key_required": "API key required to enable publishing.",
+      "password_required": "Password required when a user id is set.",
+      "invalid_auth": "API key or credentials rejected by OpenRadiation.",
+      "cannot_connect": "Cannot reach submit.openradiation.net.",
+      "rejected": "Test measurement rejected by OpenRadiation (see logs)."
     }
   },
   "entity": {
@@ -50,11 +75,24 @@
       },
       "battery": {
         "name": "Battery"
+      },
+      "openradiation_last_submission": {
+        "name": "OpenRadiation last submission"
       }
     },
     "binary_sensor": {
       "connected": {
         "name": "Connected"
+      }
+    }
+  },
+  "selector": {
+    "environment": {
+      "options": {
+        "inside": "Inside",
+        "city": "City",
+        "countryside": "Countryside",
+        "ontheroad": "On the road"
       }
     }
   }

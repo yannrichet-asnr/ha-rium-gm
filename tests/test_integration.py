@@ -51,6 +51,8 @@ async def test_manual_flow_and_sensors(hass: HomeAssistant):
     assert states["binary_sensor.rium_gm_connected"].state == "on"
     assert states["sensor.rium_gm_total_counts"].state == "18"
     assert states["sensor.rium_gm_temperature"].state == "21.5"
+    from homeassistant.helpers import entity_registry as er
+    assert er.async_get(hass).async_get("sensor.rium_gm_temperature").entity_category is None
     # 6 trames v1 reçues en rafale : 18 coups / max(0,3 s ; 6 x 2 s) = 1,5 cps
     assert float(states["sensor.rium_gm_count_rate"].state) == 1.5
     assert float(states["sensor.rium_gm_dose_rate"].state) > 0

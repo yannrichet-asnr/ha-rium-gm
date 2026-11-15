@@ -75,7 +75,7 @@ class RiumAggregator:
 
 
 class RiumSerialReader:
-    def __init__(self, port: str, aggregator: RiumAggregator, on_frame: Callable[[], None]) -> None:
+    def __init__(self, port: str, aggregator: RiumAggregator, on_frame: Callable[[RiumFrame | None], None]) -> None:
         self.port = port
         self.agg = aggregator
         self._on_frame = on_frame
@@ -101,7 +101,7 @@ class RiumSerialReader:
                 )
                 _LOGGER.info("Rium connecté sur %s", self.port)
                 self.agg.state.connected = True
-                self._on_frame()
+                self._on_frame(None)
                 parser = RiumStreamParser()
                 while True:
                     data = await reader.read(256)
@@ -110,7 +110,7 @@ class RiumSerialReader:
                     _LOGGER.debug("brut %s", data.hex())
                     for frame in parser.feed(data):
                         self.agg.add(frame)
-                        self._on_frame()
+                        self._on_frame(frame)
             except asyncio.CancelledError:
                 raise
             except Exception as err:  # noqa: BLE001 - reconnexion quelle que soit l'erreur
@@ -120,5 +120,5 @@ class RiumSerialReader:
                     writer.close()
                 if self.agg.state.connected:
                     self.agg.state.connected = False
-                    self._on_frame()
+                    self._on_frame(None)
             await asyncio.sleep(RECONNECT_DELAY)
