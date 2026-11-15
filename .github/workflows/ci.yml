@@ -35,4 +35,6 @@ jobs:
         with:
           category: integration
           # brands : intégration non référencée dans home-assistant/brands
-          ignore: brands
+          # description, topics : métadonnées du dépôt GitHub, à renseigner
+          # dans les réglages du dépôt puis à retirer de cette liste
+          ignore: brands description topics
