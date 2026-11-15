@@ -1,8 +1,13 @@
 name: Release
 
+# Deux déclencheurs :
+# - push d'un tag vX.Y.Z ;
+# - lancement manuel (Actions > Release > Run workflow) : le tag v<version du
+#   manifeste> est créé sur le commit courant de la branche choisie.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,18 +18,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Vérifier la cohérence tag / manifeste
+      - name: Version et cohérence tag / manifeste
         run: |
-          tag="${GITHUB_REF_NAME#v}"
           manifest=$(python3 -c "import json;print(json.load(open('custom_components/rium_gm/manifest.json'))['version'])")
-          if [ "$tag" != "$manifest" ]; then
-            echo "::error::tag v$tag != version du manifeste $manifest"; exit 1
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            [ "${GITHUB_REF_NAME#v}" = "$manifest" ] || { echo "::error::tag $GITHUB_REF_NAME != version du manifeste $manifest"; exit 1; }
           fi
+          echo "VERSION=$manifest" >> "$GITHUB_ENV"
 
       - name: Notes de version (section du CHANGELOG)
         run: |
-          awk -v v="## ${GITHUB_REF_NAME#v}" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
-          test -s notes.md || { echo "::error::section ${GITHUB_REF_NAME#v} absente du CHANGELOG"; exit 1; }
+          awk -v v="## $VERSION" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
+          test -s notes.md || { echo "::error::section $VERSION absente du CHANGELOG"; exit 1; }
 
       - name: Archive de l'intégration
         run: cd custom_components/rium_gm && zip -r "$GITHUB_WORKSPACE/rium_gm.zip" . -x '__pycache__/*'
@@ -32,4 +37,8 @@ jobs:
       - name: Créer la release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" rium_gm.zip --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+        run: |
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "::error::la release v$VERSION existe déjà : incrémenter la version du manifeste"; exit 1
+          fi
+          gh release create "v$VERSION" rium_gm.zip --title "v$VERSION" --notes-file notes.md --target "$GITHUB_SHA"
